@@ -1,3 +1,7 @@
 
 The aim of this small project is to open a stock's page if it drops below a certain price, eventually it will open the
 brokerage of the desired individual and buy/sell their security
+
+How to run:
+    pip install requirements.py
+    python stock_price_update.py
