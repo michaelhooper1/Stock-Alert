@@ -1,12 +1,23 @@
 import requests
 from decimal import *
-import datetime
-import time
 import webbrowser
 import re
 import simplejson as json
 import bs4
-import csv
+import _asyncio
+
+def price_search(company):
+    res = requests.get("https://finance.yahoo.com/quote/{}".format(company))
+
+    query = bs4.BeautifulSoup(res.text, "lxml")
+
+    price_query = str(query.find("span", attrs={"data-reactid": "32"}))
+
+    price_query_2 = re.sub(r'(?!<)[^<]*(?=>)', '', price_query)
+
+    true_price_query = Decimal(re.sub("\<\>", "", price_query_2))
+
+    return true_price_query
 
 def look_at_price():
     #We're going to dump this later
@@ -55,18 +66,7 @@ def look_at_price():
         company_symbol += ".HK"
 
 
-    res = requests.get("https://finance.yahoo.com/quote/{}".format(company_symbol))
-
-
-    query = bs4.BeautifulSoup(res.text, "lxml")
-
-
-    price_query = str(query.find("span" ,attrs={"data-reactid": "32"}))
-
-    price_query_2 = re.sub(r'(?!<)[^<]*(?=>)', '', price_query)
-
-    true_price_query = Decimal(re.sub("\<\>", "", price_query_2))
-
+    price_search(company_symbol)
 
     company_prices.update( {company_symbol: true_fair_price} )
 
@@ -77,8 +77,18 @@ def look_at_price():
         else:
             json.dump(company_prices, json_file, use_decimal=True)
 
+    if true_fair_price < price_search(company_symbol):
+        print("Prices are above your asking price, checking again...")
 
-    if true_fair_price > true_price_query:
-        webbrowser.open_new("https://finance.yahoo.com/quote/{}".format(company_symbol))
+    while true_fair_price < price_search(company_symbol):
+        price_search(company_symbol)
 
-look_at_price()
+
+    webbrowser.open_new("https://finance.yahoo.com/quote/{}".format(company_symbol))
+
+
+def main():
+    look_at_price()
+
+if __name__ == "__main__":
+    main()
