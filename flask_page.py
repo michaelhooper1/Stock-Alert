@@ -82,7 +82,7 @@ def home():
         return redirect(url_for("user"))
     else:
         flash("Please log in to access your information")
-        return redirect(url_for("login.html"))
+        return redirect(url_for("login"))
 
 
 @app.route("/admin/")
@@ -113,7 +113,7 @@ def user():
         return render_template("user.html", user = user)
     else:
         flash("Please log in to access your information")
-        return redirect(url_for("login.html"))
+        return redirect(url_for("login"))
 
 @app.route("/logout")
 def logout():
@@ -124,7 +124,7 @@ def logout():
     session.pop("user", None)
     session.pop("email", None)
 
-    return redirect(url_for("login.html"))
+    return redirect(url_for("login"))
 
 if __name__ == "__main__":
     db.create_all()
