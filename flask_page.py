@@ -3,6 +3,7 @@ import bcrypt
 import os
 from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
+from passlib.hash import sha256_crypt
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -15,6 +16,7 @@ db = SQLAlchemy(app)
 class User(db.Model):
     _id = db.Column("id", db.Integer, primary_key = True)
     name = db.Column(db.String(100))
+    username = db.Column(db.String(100))
     email = db.Column(db.String(100))
     password = db.Column(db.Text, nullable = False)
 
@@ -22,13 +24,36 @@ class User(db.Model):
         self.name = name
         self.email = email
         self.password = password
+
+
 @app.route("/register", methods=["POST", "GET"])
 def register():
-    return render_template("register.html")
-    """if "user" in session:
-        flash("You're currently logged in")
+    if "user" in session:
+        flash("You're currently already logged in")
         return redirect(url_for("user"))
 
+    if request.method == "POST":
+        session.permanent = True
+        new_user = ["name", "email", "username", "password", "confirm password"]
+
+        name = request.form["name"]
+        session["name"] = name
+
+        email = request.form["name"]
+        session["email"] = email
+
+        username = request.form["username"]
+        session["username"] = username
+
+        preencrypted_password = request.form["password"]
+        password = sha256_crypt.encrypt(preencrypted_password)
+        session["password"] = password
+
+        
+      
+    return render_template("register.html")
+    
+    """
     username = request.json.get("username", None)
     password = request.json.get("password", None)
 

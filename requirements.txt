@@ -5,3 +5,4 @@ simplejson == 3.17.2
 flask == 1.1.2
 flask-sqlalchemy == 2.4.4
 Flask-Bcrypt == 0.7.1
+passlib == 1.7.4
