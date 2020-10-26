@@ -20,8 +20,9 @@ class User(db.Model):
     email = db.Column(db.String(100))
     password = db.Column(db.Text, nullable = False)
 
-    def __init__(self, name, email, password):
+    def __init__(self, name, username, email, password):
         self.name = name
+        self.username = username
         self.email = email
         self.password = password
 
@@ -39,7 +40,7 @@ def register():
         name = request.form["name"]
         session["name"] = name
 
-        email = request.form["name"]
+        email = request.form["email"]
         session["email"] = email
 
         username = request.form["username"]
@@ -49,27 +50,30 @@ def register():
         password = sha256_crypt.encrypt(preencrypted_password)
         session["password"] = password
 
+        confirmed_password = request.form["confirm"]
         
+        if confirmed_password != password:
+            flash("The password fields do not match, please type again.")
+            return redirect(url_for("register"))
+        
+        if not username:
+            return "Missing Username", 400
+        if not email:
+            return "Missing email", 400
+        if not password:
+            return "Missing Password", 400
+
+        new_user = User(name = name, email = email, password= password)
+        db.session.add(user)
+        db.session.commit()
+        flash("Welcome, {}".format(new_user.username))
+        return redirect(url_for("user"))
       
     return render_template("register.html")
     
-    """
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
+   
+   
 
-    if not username:
-        return "Missing Username", 400
-    if not password:
-        return "Missing Password", 400
-
-    hashed = bcrypt.hashpw(password.encode("utf-0"), bcrypt.gensalt())
-
-    user = User(name = username, email= email, password = hashed)
-
-    db.session.add(user)
-    db.session.commit()
-
-    return "Welcome {}".format(user.username)"""
 
 
 @app.route("/login", methods=["POST", "GET"])
@@ -77,6 +81,7 @@ def login():
     if request.method == "POST":
         session.permanent = True
         user = request.form["nm"]
+        password = request.form["password"]
         session["user"] = user
 
         found_user = User.query.filter_by(name=user).first()
