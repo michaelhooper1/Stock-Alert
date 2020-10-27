@@ -52,7 +52,7 @@ def register():
 
         confirmed_password = request.form["confirm"]
         
-        if confirmed_password != password:
+        if confirmed_password != preencrypted_password:
             flash("The password fields do not match, please type again.")
             return redirect(url_for("register"))
         
@@ -63,8 +63,8 @@ def register():
         if not password:
             return "Missing Password", 400
 
-        new_user = User(name = name, email = email, password= password)
-        db.session.add(user)
+        new_user = User(name = name, username = username, email = email, password= password)
+        db.session.add(new_user)
         db.session.commit()
         flash("Welcome, {}".format(new_user.username))
         return redirect(url_for("user"))
@@ -84,7 +84,10 @@ def login():
         password = request.form["password"]
         session["user"] = user
 
-        found_user = User.query.filter_by(name=user).first()
+        data = c.execute("SELECT * FROM users WHERE username = (%s)",
+                             thwart(request.form['username']))
+
+        found_user = sha256_crypt.verify(password, data)
 
         if found_user:
             session["email"] = found_user.email
