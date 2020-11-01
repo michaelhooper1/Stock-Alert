@@ -1,7 +1,11 @@
+
+/* unneeded, but for overlay of plus sign should you work it out*/
 .btn-glyphicon {
+    height: 25px;
+    width: 25px;
     padding: 8px;
     background: #ffffff;
-    margin-right: 4px;
+    margin-right: 0px;
 }
 
 .icon-btn {

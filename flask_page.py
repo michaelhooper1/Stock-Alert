@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
 from passlib.hash import sha256_crypt
 import sqlite3
-
+import stock_price_update
 
 
 app = Flask(__name__)
@@ -91,8 +91,7 @@ def register():
         new_user = User(name = name, username = username, email = email, password= password)
         db.session.add(new_user)
         db.session.commit()
-        print(db)
-        print(new_user)
+       
         flash("Welcome, {}".format(new_user.username))
         return redirect(url_for("user"))
       
@@ -134,9 +133,11 @@ def login():
                 #session["email"] = found_user.email
                 return redirect(url_for("user"))
 
-            else:
-                flash("No such user exist, register to continue")
-                return redirect(url_for("register"))
+            elif not found_user:
+                flash("Incorrect password, please enter your correct password")
+                
+                session.pop("user", None)
+                return redirect(url_for("home"))
 
     else:
         if "user" in session:
@@ -212,6 +213,11 @@ def user():
     else:
         flash("Please log in to access your information")
         return redirect(url_for("login"))
+
+@app.route("/add_company")
+def add_tracking():
+    return render_template("add_company.html")
+
 
 @app.route("/logout")
 def logout():
