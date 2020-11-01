@@ -1,0 +1,126 @@
+{%extends "base.html"%}
+
+{%block head%}
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename = 'add_button.css')}}" />
+<link rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" />
+{%endblock%}
+
+      {%block title%}Portfolio {%endblock%}
+
+{%block content%}
+<!-- Card -->
+{%for x in company%}
+<div class="card weather-card">
+
+    <!-- Card content -->
+    <div class="card-body pb-3">
+
+        <!-- Title -->
+        <h4 class="card-title font-weight-bold">{{company_name}}</h4>
+        <!-- Text -->
+        <p class="card-text">Mon, 12:30 PM, Mostly Sunny</p>
+        <div class="d-flex justify-content-between">
+            <p class="display-1 degree">23</p>
+            <i class="fas fa-sun-o fa-5x pt-3 amber-text"></i>
+        </div>
+        <div class="d-flex justify-content-between mb-4">
+            <p><i class="fas fa-tint fa-lg text-info pr-2"></i>3% Precipitation</p>
+            <p><i class="fas fa-leaf fa-lg grey-text pr-2"></i>21 km/h Winds</p>
+        </div>
+        <div class="progress md-progress">
+            <div class="progress-bar black" role="progressbar" style="width: 40%" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <ul class="list-unstyled d-flex justify-content-between font-small text-muted mb-4">
+            <li class="pl-4">8AM</li>
+            <li>11AM</li>
+            <li>2PM</li>
+            <li>5PM</li>
+            <li class="pr-4">8PM</li>
+        </ul>
+
+        <div class="collapse-content">
+
+            <div class="collapse" id="collapseExample">
+
+                <table class="table table-borderless table-sm mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="font-weight-normal align-middle">Tuesday</td>
+                            <td class="float-right font-weight-normal">
+                                <p class="mb-1">24&deg;<span class="text-muted">/12&deg;</span></p>
+                            </td>
+                            <td class="float-right mr-3">
+                                <i class="fas fa-sun fa-lg amber-text"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-normal align-middle">Wednesday</td>
+                            <td class="float-right font-weight-normal">
+                                <p class="mb-1">19&deg;<span class="text-muted">/10&deg;</span></p>
+                            </td>
+                            <td class="float-right mr-3">
+                                <i class="fas fa-cloud-sun-rain fa-lg text-info"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-normal align-middle">Thursday</td>
+                            <td class="float-right font-weight-normal">
+                                <p class="mb-1">23&deg;<span class="text-muted">/15&deg;</span></p>
+                            </td>
+                            <td class="float-right mr-3">
+                                <i class="fas fa-sun fa-lg amber-text"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-normal align-middle">Friday</td>
+                            <td class="float-right font-weight-normal">
+                                <p class="mb-1">26&deg;<span class="text-muted">/19&deg;</span></p>
+                            </td>
+                            <td class="float-right mr-3">
+                                <i class="fas fa-sun fa-lg amber-text"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-normal align-middle">Saturday</td>
+                            <td class="float-right font-weight-normal">
+                                <p class="mb-1">20&deg;<span class="text-muted">/16&deg;</span></p>
+                            </td>
+                            <td class="float-right mr-3">
+                                <i class="fas fa-cloud fa-lg text-info"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-normal align-middle">Sunday</td>
+                            <td class="float-right font-weight-normal">
+                                <p class="mb-1">22&deg;<span class="text-muted">/13&deg;</span></p>
+                            </td>
+                            <td class="float-right mr-3">
+                                <i class="fas fa-cloud-sun fa-lg text-info"></i>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+            <hr class="">
+
+            <a class="btn btn-flat red-text p-1 my-1 mr-0 mml-1 deep-purple-text collapsed" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample"></a>
+
+        </div>
+
+    </div>
+
+</div>
+{%endfor%}
+
+
+
+<a class="btn icon-btn btn-success" href="#">
+    <span class="glyphicon btn-glyphicon glyphicon-plus img-circle text-success"></span>
+    Add
+</a>
+
+
+
+{%endblock%}

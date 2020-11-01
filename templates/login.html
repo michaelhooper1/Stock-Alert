@@ -1,7 +1,7 @@
 {%extends "base.html" %}
 
 {%block head %}
-    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename = 'login_style.css')}}"
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename = 'login_style.css')}}" />
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
     
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
@@ -10,15 +10,7 @@
 {%block title%} Login Page {%endblock%}
 
 {%block content%}
-    {%with messages = get_flashed_messages() %}
-        {%if messages%}
-            {%for msg in messages%}
-<p>{{msg}}</p>
-            {%endfor%}
-
-
-        {%endif%}
-    {%endwith%}
+    
 <div class="wrapper fadeInDown">
     <div id="formContent">
         <!-- Tabs Titles -->
@@ -36,7 +28,7 @@
                 </div>
 
                 <!-- Login Form -->
-                <form>
+                <form method="POST">
                     <input type="text" id="username" class="fadeIn second" name="nm" placeholder="Username">
                     <input type="text" id="password" class="fadeIn third" name="password" placeholder="password">
                     <input type="submit" class="fadeIn fourth" value="Log In">
