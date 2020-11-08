@@ -6,6 +6,13 @@ import simplejson as json
 import bs4
 import _asyncio
 
+
+USA = ["US", "USA", "America", "NYSE", "NASDAQ"]
+UK = ["FTSE", "FTSE100", "FTSE250", "FTSE 100", "FTSE 250", "UK", "LONDON", "LSE"]
+JPN = ["TYO", "JPX", "TOKYO", "JAPAN", "JAPANESE", "JPN", "JPX"]
+CNDA = ["TO", "TORONTO", "CANADA", "CANADIAN", "CND", "CNDA", "TSX"]
+CHINA = ["CHINA", "CHINESE", "SHANGHAI", "SSE", "HK", "HONG KONG"]
+
 def price_search(company):
     res = requests.get("https://finance.yahoo.com/quote/{}".format(company))
 
@@ -19,38 +26,24 @@ def price_search(company):
 
     return true_price_query
 
-def look_at_price():
+
+
+def look_at_price(symb, mark, pri):
     #We're going to dump this later
     company_prices = {}
 
     #All of the necessary markets, to be added to later
-    USA = ["US", "USA", "America", "NYSE", "NASDAQ"]
-    UK = ["FTSE", "FTSE100", "FTSE250", "FTSE 100", "FTSE 250", "UK", "LONDON", "LSE"]
-    JPN = ["TYO", "JPX", "TOKYO", "JAPAN", "JAPANESE", "JPN", "JPX"]
-    CNDA = ["TO", "TORONTO", "CANADA", "CANADIAN", "CND", "CNDA", "TSX"]
-    CHINA = ["CHINA", "CHINESE", "SHANGHAI", "SSE", "HK", "HONG KONG"]
+    
 
 
     #Any necessary inputs that we need
-    market = input("What market are you viewing? (press q to exit) ")
-    if market == "q":
-        quit()
+    market = mark
+    
 
-    company_symbol = input("Input the company symbol you wish to view: ")
-    fair_price = input("What price do you feel is appropriate for this company? (In the denomination of the stock) ")
+    company_symbol = symb
+    fair_price = pri
 
 
-    try:
-        isinstance(fair_price, Decimal)
-        assert(Decimal(fair_price) > 0)
-    except DecimalException:
-        print("This is not a number, enter a valid number")
-        look_at_price().exit()
-    except AssertionError:
-        print("Please enter a positive number.")
-        look_at_price().exit()
-    else:
-        pass
 
     true_fair_price = Decimal(fair_price)
 
@@ -70,22 +63,70 @@ def look_at_price():
 
     company_prices.update( {company_symbol: true_fair_price} )
 
-    #Remember this is simplejson
-    with open("company_and_price.json", "w") as json_file:
-        if true_fair_price < 0:
-            print("The number was invalid, so any existing price was not overwritten")
-        else:
-            json.dump(company_prices, json_file, use_decimal=True)
+    
 
-    if true_fair_price < price_search(company_symbol):
-        print("Prices are above your asking price, checking again...")
-
+  
     while true_fair_price < price_search(company_symbol):
         price_search(company_symbol)
 
 
     webbrowser.open_new("https://finance.yahoo.com/quote/{}".format(company_symbol))
 
+
+def all_stat_lookup(symb, mark):
+    company_symbol = symb
+
+    if mark.upper() in USA:
+        pass
+    elif mark.upper() in UK:
+        company_symbol += ".L"
+    elif mark.upper() in JPN:
+        company_symbol += ".T"
+    elif mark.upper() in CNDA:
+        company_symbol += ".TO"
+    elif mark.upper() in CHINA:
+        company_symbol += ".HK"
+
+
+    res = requests.get("https://finance.yahoo.com/quote/{}".format(company_symbol))
+    prof = requests.get("https://finance.yahoo.com/quote/{}/profile?p={}".format(company_symbol,company_symbol))
+
+    query = bs4.BeautifulSoup(res.text, "lxml")
+    profile = bs4.BeautifulSoup(prof.text, "lxml")
+
+    name_1 = str(query.find("h1", attrs= {"class": "D(ib) Fz(18px)", "data-reactid":"7"}))
+    name_2 = re.sub(r'(?!<)[^<]*(?=>)', '', name_1)
+    name = re.sub("\<\>", "", name_2)
+
+    market_1 = str(query.find("div", attrs={"class": "C($tertiaryColor) Fz(12px)", "data-reactid": "8"}))
+    market_2 = re.sub(r'(?!<)[^<]*(?=>)', '', market_1)
+    market =  re.sub("\<\>", "", market_2)
+
+    price_query = str(query.find("span", attrs={"data-reactid": "32"}))
+    price_query_2 = re.sub(r'(?!<)[^<]*(?=>)', '', price_query)
+    true_price_query = re.sub("\<\>", "", price_query_2)
+
+  
+    
+    info_1 = profile.find("p", attrs={"class": "D(ib) Va(t)"})
+    info_data = info_1.findChildren("span", attrs={"class": "Fw(600)"}, recursive = False)
+    info_data_string = [str(x) for x in info_data]
+    info_titles = [x for x in info_1.findChildren("span") if x not in info_data]
+    
+    
+    info_data_2 = [re.sub(r'(?!<)[^<]*(?=>)', '', x) for x in info_data_string]
+    info_data_3 = [re.sub("\<\>", " ", y) for y in info_data_2]
+    true_info_data = [re.sub("\&amp;", "&", a) for a in info_data_3]
+
+    
+    
+    
+    
+
+
+    query_dict = {"name": name, "market": market, "price": true_price_query, "info": true_info_data}
+
+    return query_dict
 
 def main():
     look_at_price()

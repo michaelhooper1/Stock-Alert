@@ -1,0 +1,36 @@
+{%extends "base.html"%}
+{%block head%}
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename = 'confirm.css')}}" />
+
+{%endblock%}
+
+{%block content%}
+<div class="d-flex justify-content-center">
+    <div class="card" style="width: 25rem;">
+        <div class="card-body">
+            <h5 class="card-title">{{company.name}}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{company.market}}</h6>
+            <p class="card-text">
+                Sector(s): {{company.info[0]}}
+
+                <br />
+
+                Industry: {{company.info[1]}}
+
+                <br />
+
+                Full time employees: {{company.info[2]}}
+            </p>
+
+            <div id="element1">Company price: {{company.price}}</div>
+            <div id="element2">Your desired price: {{des_price}}</div>
+        </div>
+        <form method="POST">
+            <div class="footer" align="center">
+                <button type="submit" class="btn btn-primary">Confirm</button>
+                <button type="button" onclick="history.back()" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+    {%endblock%}

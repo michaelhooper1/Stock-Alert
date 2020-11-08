@@ -10,16 +10,16 @@
     <div class="form-row">
         <div class="form-group col-md-6">
             <label for="ticketSymbol">Company Ticket Symbol (4 or fewer letters)</label>
-            <input type="text" class="form-control" id="ticketSymbol" placeholder="(e.g. FB, GOOG, AMZN)">
+            <input type="text" class="form-control" id="ticketSymbol" name="symbol" placeholder="(e.g. FB, GOOG, AMZN)">
         </div>
         <div class="form-group col-md-6">
             <label for="Market">Market of origin</label>
-            <input type="text" class="form-control" id="Market" placeholder="(e.g. DJIA, FTSE, TYO)">
+            <input type="text" class="form-control" id="Market" name="market" placeholder="(e.g. DJIA, FTSE, TYO)">
         </div>
     </div>
     <div class="form-group">
         <label for="desiredPrice">Desired Price</label>
-        <input type="number" class="form-control" id="desiredPrice" placeholder="Enter this value in the currency of the market of origin (Do not include the symbols)">
+        <input type="number" step="0.01" class="form-control" id="desiredPrice" name="price" placeholder="Enter this value in the currency of the market of origin (Do not include the symbols)">
     </div>
 
 
@@ -33,9 +33,13 @@
             </label>
         </div>
     </div>
-    <div class="submit-buttons">
+
+    
+    <div class="button-row">
         <button type="submit" class="btn btn-primary" id="submit">Submit</button>
-        <input type="reset" class="btn btn-primary" id="reset"></input>
+
+        <button type="reset" class="btn btn-primary" id="reset"> Reset</button>
     </div>
+    
 </form>
 {%endblock%}

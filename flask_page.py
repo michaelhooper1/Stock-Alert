@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
 from passlib.hash import sha256_crypt
 import sqlite3
-import stock_price_update
+from stock_price_update import look_at_price, all_stat_lookup
 
 
 app = Flask(__name__)
@@ -17,7 +17,8 @@ db = SQLAlchemy(app)
 
 user_tracking_company = db.Table("user_tracking_company",
              db.Column(("user_id"), db.ForeignKey("user.id")),
-             db.Column(("company_id"), db.ForeignKey("company.id")))
+             db.Column(("company_id"), db.ForeignKey("company.id")),
+             db.Column(("desired_price"), db.Float))
 
 class User(db.Model):
     _id = db.Column("id", db.Integer, primary_key = True)
@@ -39,7 +40,6 @@ class Company(db.Model):
     _id = _id = db.Column("id", db.Integer, primary_key = True)
     c_name = db.Column(db.String(200))
     c_index = db.Column(db.String(5))
-    c_price = db.Column(db.Float)
     
     _tracked_by = db.relationship("User", secondary = user_tracking_company, backref = db.backref("user_tracking_company_backref", lazy="dynamic"))
 
@@ -214,9 +214,47 @@ def user():
         flash("Please log in to access your information")
         return redirect(url_for("login"))
 
-@app.route("/add_company")
+@app.route("/add_company", methods=["POST", "GET"])
 def add_tracking():
+    if request.method == "POST":
+        symbol = request.form["symbol"]
+        session["symbol"] = request.form["symbol"]
+
+        market = request.form["market"]
+        session["market"] = request.form["market"]
+
+        price = request.form["price"]
+        session["price"] = request.form["price"]
+
+        if not symbol or not market or not price:
+            return render_template("404.html")
+
+        
+
+        return redirect(url_for("confirmation", symb = symbol, mark = market, pri = price))
+
+
+
     return render_template("add_company.html")
+
+@app.route("/confirm", methods=["POST", "GET"])
+def confirmation():
+    sym = session["symbol"]
+    mar = session["market"]
+    desired_price = session["price"]
+
+    if request.method == "POST":
+        new_track = user_tracking_company(user_id = session["id"], )
+        
+
+        
+
+
+        
+    
+
+    return render_template("confirm.html",company = all_stat_lookup(sym, mar), des_price = desired_price)
+
 
 
 @app.route("/logout")
