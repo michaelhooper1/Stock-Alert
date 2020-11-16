@@ -1,10 +1,11 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 import os
+from sqlalchemy.orm import sessionmaker
 from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
 from passlib.hash import sha256_crypt
 import sqlite3
-from stock_price_update import look_at_price, all_stat_lookup
+from stock_price_update import look_at_price, all_stat_lookup, price_search
 
 
 app = Flask(__name__)
@@ -15,10 +16,15 @@ app.permanent_session_lifetime = timedelta(days = 5)
 
 db = SQLAlchemy(app)
 
-user_tracking_company = db.Table("user_tracking_company",
-             db.Column(("user_id"), db.ForeignKey("user.id")),
-             db.Column(("company_id"), db.ForeignKey("company.id")),
-             db.Column(("desired_price"), db.Float))
+class UserTrackingCompany(db.Model):
+    __tablename__ = "UserTrackingCompany"
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key = True)
+    company_id = db.Column(db.Integer, db.ForeignKey("company.id"), primary_key = True)
+    des_price = db.Column(db.Float)
+
+    user = db.relationship("User", back_populates = "tracks")
+    company = db.relationship("Company", back_populates = "tracked_by")
+
 
 class User(db.Model):
     _id = db.Column("id", db.Integer, primary_key = True)
@@ -27,7 +33,7 @@ class User(db.Model):
     email = db.Column(db.String(100))
     password = db.Column(db.Text, nullable = False)
 
-    tracks = db.relationship("Company", backref = "tracked_by", lazy = "dynamic", secondary = user_tracking_company)
+    tracks = db.relationship("UserTrackingCompany", lazy="subquery", back_populates = "user")
 
     def __init__(self, name, username, email, password):
         self.name = name
@@ -37,11 +43,11 @@ class User(db.Model):
 
 
 class Company(db.Model):
-    _id = _id = db.Column("id", db.Integer, primary_key = True)
+    _id = db.Column("id", db.Integer, primary_key = True)
     c_name = db.Column(db.String(200))
-    c_index = db.Column(db.String(5))
-    
-    _tracked_by = db.relationship("User", secondary = user_tracking_company, backref = db.backref("user_tracking_company_backref", lazy="dynamic"))
+    c_index = db.Column(db.String(10))
+
+    tracked_by = db.relationship("UserTrackingCompany", lazy="dynamic", back_populates = "company")
 
     def __init__(self, c_name, c_index):
         self.c_name = c_name
@@ -118,6 +124,7 @@ def login():
 
             data = c.fetchone()[4]
 
+            session["user_data"] = data
             id_data = c.execute("SELECT id from user where username = '{}'".format(user))
 
             id_data = c.fetchone()[0]
@@ -169,7 +176,7 @@ def admin():
     return redirect(url_for("user", name = "Admin"))
 
 @app.route("/portfolio")
-def porfolio():
+def portfolio():
     
     if "user" in session:
        
@@ -178,11 +185,35 @@ def porfolio():
         c = sqlite3.connect("users.sqlite3").cursor()
         id_call = session["id"]
         
-        tracking_data = c.execute("SELECT company_id FROM user_tracking_company WHERE user_id = '{}'".format(id_call))
-        
-        company_list = [x for x in tracking_data]
+        tracking_data = c.execute("SELECT company_id FROM UserTrackingCompany WHERE user_id = '{}'".format(id_call))
+        tracking_data = c.fetchall()
+        for i in range(len(tracking_data)):
+            tracking_data[i] = int(''.join(str(ele) for ele in tracking_data[i])) 
         
 
+        desired_price_data = c.execute("SELECT des_price FROM UserTrackingCompany WHERE user_id = '{}'".format(id_call))
+        desired_price_data = c.fetchall()
+        
+        for i in range(len(desired_price_data)):
+            desired_price_data[i] = float(''.join(str(ele) for ele in desired_price_data[i])) 
+        
+
+        
+        company_list = []
+        company_price_list = []
+
+        for entry in tracking_data:
+            company_data = c.execute("SELECT * FROM Company WHERE id = '{}'".format(entry))
+            company_data = c.fetchone()
+            company_list.append(company_data)
+        
+
+        for company in company_list:
+            actual_price = price_search(company[1], company[2])
+            company_price_list.append(actual_price)
+        
+
+        
         if len(company_list) == 0:
             flash("You are not tracking anything")
 
@@ -191,7 +222,7 @@ def porfolio():
     else:
         return redirect(url_for("login"))
 
-    return render_template("portfolio.html", companies = user.tracks.all())
+    return render_template("portfolio.html", companies = company_list, prices_list = company_price_list)
 
 @app.route("/user", methods=["POST", "GET"])
 def user():
@@ -216,26 +247,41 @@ def user():
 
 @app.route("/add_company", methods=["POST", "GET"])
 def add_tracking():
-    if request.method == "POST":
-        symbol = request.form["symbol"]
-        session["symbol"] = request.form["symbol"]
+    if "user" in session:
+        if request.method == "POST":
+            symbol = request.form["symbol"]
+            session["symbol"] = request.form["symbol"]
 
-        market = request.form["market"]
-        session["market"] = request.form["market"]
+            market = request.form["market"]
+            session["market"] = request.form["market"]
 
-        price = request.form["price"]
-        session["price"] = request.form["price"]
+            price = request.form["price"]
+            session["price"] = request.form["price"]
 
-        if not symbol or not market or not price:
-            return render_template("404.html")
+            if not symbol or not market or not price:
+                return render_template("404.html")
 
-        
+            c = sqlite3.connect("users.sqlite3").cursor()
+            try:
+                company_check = c.execute("SELECT * FROM Company WHERE c_name = '{}' AND c_index = {}".format(symbol, market))
+                company_check = c.fetchone()[0]
 
-        return redirect(url_for("confirmation", symb = symbol, mark = market, pri = price))
+            except sqlite3.OperationalError:
+                company_check = False
+
+            if company_check:
+                return redirect(url_for("confirmation", symb = symbol, mark = market, pri = price))
+
+            else:
+                new_company = Company(c_name = symbol, c_index = market)
+
+                db.session.add(new_company)
+                db.session.commit()
+                return redirect(url_for("confirmation", symb = symbol, mark = market, pri = price))
 
 
 
-    return render_template("add_company.html")
+        return render_template("add_company.html")
 
 @app.route("/confirm", methods=["POST", "GET"])
 def confirmation():
@@ -243,9 +289,30 @@ def confirmation():
     mar = session["market"]
     desired_price = session["price"]
 
-    if request.method == "POST":
-        new_track = user_tracking_company(user_id = session["id"], )
+
+    with sqlite3.connect("users.sqlite3") as connection:
+        c = connection.cursor()
+        c_id = c.execute("SELECT id FROM Company WHERE c_name = '{}' AND c_index = '{}'".format(sym, mar))
+        c_id = c.fetchone()[0]
         
+
+    if request.method == "POST":
+
+        
+        
+        
+        track = UserTrackingCompany(des_price = desired_price)
+        
+        
+        track.user_id = session["id"]
+        track.company_id = c_id
+
+
+
+        db.session.add(track)
+        db.session.commit()
+        flash("You've successfully added {} ({})".format(sym, mar))
+        return redirect(url_for("portfolio"))
 
         
 

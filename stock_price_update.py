@@ -13,8 +13,20 @@ JPN = ["TYO", "JPX", "TOKYO", "JAPAN", "JAPANESE", "JPN", "JPX"]
 CNDA = ["TO", "TORONTO", "CANADA", "CANADIAN", "CND", "CNDA", "TSX"]
 CHINA = ["CHINA", "CHINESE", "SHANGHAI", "SSE", "HK", "HONG KONG"]
 
-def price_search(company):
-    res = requests.get("https://finance.yahoo.com/quote/{}".format(company))
+def price_search(company_symbol, mark):
+
+    if mark.upper() in USA:
+        pass
+    elif mark.upper() in UK:
+        company_symbol += ".L"
+    elif mark.upper() in JPN:
+        company_symbol += ".T"
+    elif mark.upper() in CNDA:
+        company_symbol += ".TO"
+    elif mark.upper() in CHINA:
+        company_symbol += ".HK"
+
+    res = requests.get("https://finance.yahoo.com/quote/{}".format(company_symbol))
 
     query = bs4.BeautifulSoup(res.text, "lxml")
 
@@ -22,24 +34,18 @@ def price_search(company):
 
     price_query_2 = re.sub(r'(?!<)[^<]*(?=>)', '', price_query)
 
-    true_price_query = Decimal(re.sub("\<\>", "", price_query_2))
-
+    true_price_query = (re.sub("\<\>", "", price_query_2))
+    
     return true_price_query
 
 
 
 def look_at_price(symb, mark, pri):
-    #We're going to dump this later
-    company_prices = {}
-
-    #All of the necessary markets, to be added to later
     
 
 
     #Any necessary inputs that we need
     market = mark
-    
-
     company_symbol = symb
     fair_price = pri
 
@@ -47,19 +53,9 @@ def look_at_price(symb, mark, pri):
 
     true_fair_price = Decimal(fair_price)
 
-    if market.upper() in USA:
-        pass
-    elif market.upper() in UK:
-        company_symbol += ".L"
-    elif market.upper() in JPN:
-        company_symbol += ".T"
-    elif market.upper() in CNDA:
-        company_symbol += ".TO"
-    elif market.upper() in CHINA:
-        company_symbol += ".HK"
 
 
-    price_search(company_symbol)
+    price_search(company_symbol, market)
 
     company_prices.update( {company_symbol: true_fair_price} )
 
@@ -67,7 +63,7 @@ def look_at_price(symb, mark, pri):
 
   
     while true_fair_price < price_search(company_symbol):
-        price_search(company_symbol)
+        price_search(company_symbol, market)
 
 
     webbrowser.open_new("https://finance.yahoo.com/quote/{}".format(company_symbol))

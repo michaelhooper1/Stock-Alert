@@ -9,19 +9,21 @@
 
 {%block content%}
 <!-- Card -->
-{%for x in company%}
+{%for i in range(companies|length)%}
+
 <div class="card weather-card">
 
     <!-- Card content -->
     <div class="card-body pb-3">
 
         <!-- Title -->
-        <h4 class="card-title font-weight-bold">{{company_name}}</h4>
-        <!-- Text -->
-        <p class="card-text">Mon, 12:30 PM, Mostly Sunny</p>
+        
+        <h4 class="card-title font-weight-bold" style="text-transform: uppercase">{{companies[i][1]}}</h4>
+            <!-- Text -->
+        <p class="card-text" style="text-transform:uppercase; color:#808080;">Market: {{companies[i][2]}}</p>
         <div class="d-flex justify-content-between">
-            <p class="display-1 degree">23</p>
-            <i class="fas fa-sun-o fa-5x pt-3 amber-text"></i>
+            <p class="display-1 degree">{{prices_list[i]}}</p>
+            <i class="fas fa-sun-o fa-5x pt-3 amber-text">last updated:</i>
         </div>
         <div class="d-flex justify-content-between mb-4">
             <p><i class="fas fa-tint fa-lg text-info pr-2"></i>3% Precipitation</p>
@@ -37,6 +39,7 @@
             <li>5PM</li>
             <li class="pr-4">8PM</li>
         </ul>
+        
 
         <div class="collapse-content">
 
@@ -112,10 +115,12 @@
     </div>
 
 </div>
+<br />
+
 {%endfor%}
 
 
-
+<br />
 <a class="btn icon-btn btn-success" href="/add_company">
     <span class="glyphicon glyphicon-plus img-circle text-success"></span>
     Add
