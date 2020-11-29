@@ -1,0 +1,36 @@
+{%extends "base.html" %}
+
+
+{%block head%}
+<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="bootstrap.confirm.js"></script>
+{%endblock%}
+
+{%block content%}
+<form method="POST">
+{%for company in tracks%}
+<div class="card">
+    <div class="card-body">
+        <p style=" text-transform: uppercase">
+            &nbsp;
+            <input class="form-check-input" type="checkbox" value="{{company[0]}}" name="my_checkbox">
+            
+            <label class="form-check-label" for="gridCheck">
+                {{company[1]}}
+                {{company[2]}}
+            </label>
+
+        </p>
+    </div>
+</div>
+<br />
+
+
+{%endfor%}
+
+
+<button class="btn btn-primary" type="submit">
+    Confirm
+</button>
+</form>
+{%endblock%}

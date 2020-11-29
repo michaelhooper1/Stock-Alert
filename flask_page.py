@@ -6,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from passlib.hash import sha256_crypt
 import sqlite3
 from stock_price_update import look_at_price, all_stat_lookup, price_search
+import stock_price_update
+import asyncio
 
 
 app = Flask(__name__)
@@ -170,11 +172,6 @@ def home():
         flash("Please log in to access your information")
         return redirect(url_for("login"))
 
-
-@app.route("/admin/")
-def admin():
-    return redirect(url_for("user", name = "Admin"))
-
 @app.route("/portfolio")
 def portfolio():
     
@@ -212,17 +209,18 @@ def portfolio():
             actual_price = price_search(company[1], company[2])
             company_price_list.append(actual_price)
         
+        loop = asyncio.run(stock_price_update.main(company_list, company_price_list))
+        
 
         
         if len(company_list) == 0:
             flash("You are not tracking anything")
 
-        #Recall sqlAlchemy get() query is by primary key
-        user = User.query.get(id_call)
+        
     else:
         return redirect(url_for("login"))
 
-    return render_template("portfolio.html", companies = company_list, prices_list = company_price_list)
+    return render_template("portfolio.html", companies = company_list, prices_list = company_price_list, desired_price = desired_price_data)
 
 @app.route("/user", methods=["POST", "GET"])
 def user():
@@ -282,6 +280,39 @@ def add_tracking():
 
 
         return render_template("add_company.html")
+
+@app.route("/delete_track", methods=["POST", "GET"])
+def delete():
+    if "user" in session:
+        conn = sqlite3.connect("users.sqlite3")
+        c = conn.cursor()
+
+        all_tracks = c.execute("SELECT company_id from UserTrackingCompany where user_id = '{}'".format(session["id"]))
+        all_tracks = c.fetchall()
+        company_list = []
+        for i in range(len(all_tracks)):
+            all_tracks[i] = int(''.join(str(ele) for ele in all_tracks[i])) 
+            comp = c.execute("SELECT * from Company where id = {}".format(all_tracks[i]))
+            comp = c.fetchone()
+            company_list.append(comp)
+
+        
+        
+        if request.method == "POST":
+            print(request.form.getlist("my_checkbox"))
+            delete_list = request.form.getlist("my_checkbox")
+            for x in delete_list:
+                c.execute("DELETE FROM UserTrackingCompany WHERE user_id = '{}' AND company_id = '{}'".format(int(session["id"]), int(x)))
+                conn.commit()
+
+            flash("Companies successfully deleted, you are no longer tracking them.")
+            return redirect(url_for("portfolio"))
+
+
+        return render_template("delete_track.html", tracks = company_list)
+    else:
+        return redirect(url_for("login"))
+        
 
 @app.route("/confirm", methods=["POST", "GET"])
 def confirmation():

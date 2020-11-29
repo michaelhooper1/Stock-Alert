@@ -6,3 +6,4 @@ flask == 1.1.2
 flask-sqlalchemy == 2.4.4
 Flask-Bcrypt == 0.7.1
 passlib == 1.7.4
+aiohttp == 3.7.3

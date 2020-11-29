@@ -26,8 +26,8 @@
             <i class="fas fa-sun-o fa-5x pt-3 amber-text">last updated:</i>
         </div>
         <div class="d-flex justify-content-between mb-4">
-            <p><i class="fas fa-tint fa-lg text-info pr-2"></i>3% Precipitation</p>
-            <p><i class="fas fa-leaf fa-lg grey-text pr-2"></i>21 km/h Winds</p>
+            <p><i class="fas fa-tint fa-lg text-info pr-2"></i>Desired price: {{desired_price[i]}}</p>
+            
         </div>
         <div class="progress md-progress">
             <div class="progress-bar black" role="progressbar" style="width: 40%" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
@@ -115,7 +115,7 @@
     </div>
 
 </div>
-<br />
+<br>
 
 {%endfor%}
 
@@ -125,7 +125,9 @@
     <span class="glyphicon glyphicon-plus img-circle text-success"></span>
     Add
 </a>
-
+<a href="/delete_track">
+    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" href="/delete_track">Delete Track</button>
+</a>
 
 
 {%endblock%}

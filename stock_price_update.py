@@ -2,10 +2,15 @@ import requests
 from decimal import *
 import webbrowser
 import re
-import simplejson as json
-import bs4
-import _asyncio
 
+import bs4
+import asyncio
+import smtplib
+import os
+from datetime import datetime
+
+os.environ["EMAIL_ADDRESS"] = "mhooperjnr1995@hotmail.co.uk"
+os.environ["EMAIL_PASSWORD"] = "Everton123456789"
 
 USA = ["US", "USA", "America", "NYSE", "NASDAQ"]
 UK = ["FTSE", "FTSE100", "FTSE250", "FTSE 100", "FTSE 250", "UK", "LONDON", "LSE"]
@@ -15,7 +20,9 @@ CHINA = ["CHINA", "CHINESE", "SHANGHAI", "SSE", "HK", "HONG KONG"]
 
 def price_search(company_symbol, mark):
 
-    if mark.upper() in USA:
+    if "." in company_symbol:
+        pass
+    elif mark.upper() in USA:
         pass
     elif mark.upper() in UK:
         company_symbol += ".L"
@@ -35,12 +42,26 @@ def price_search(company_symbol, mark):
     price_query_2 = re.sub(r'(?!<)[^<]*(?=>)', '', price_query)
 
     true_price_query = (re.sub("\<\>", "", price_query_2))
-    
-    return true_price_query
+    print(true_price_query)
+    return Decimal(true_price_query)
 
+def send_email_notification(symbol, market, user_email):
+    with smtplib.SMTP("smtp.outlook.com", 587) as smtp:
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.ehlo()
 
+        smtp.login(os.environ.get("EMAIL_ADDRESS"), os.environ.get("EMAIL_PASSWORD"))
 
-def look_at_price(symb, mark, pri):
+        subject = "{} in the {} market has fallen below your desired price".format(symbol, market)
+
+        body = "This occured at: {}".format(datetime)
+
+        message = "Subject: {} \n\n {}".format(subject,body)
+
+        smtp.sendmail(os.environ.get("EMAIL_ADDRESS"), user_email, message)
+
+async def look_at_price(symb, mark, pri):
     
 
 
@@ -57,16 +78,30 @@ def look_at_price(symb, mark, pri):
 
     price_search(company_symbol, market)
 
-    company_prices.update( {company_symbol: true_fair_price} )
+    if mark.upper() in USA:
+        pass
+    elif mark.upper() in UK:
+        company_symbol += ".L"
+    elif mark.upper() in JPN:
+        company_symbol += ".T"
+    elif mark.upper() in CNDA:
+        company_symbol += ".TO"
+    elif mark.upper() in CHINA:
+        company_symbol += ".HK"
+
+  
+    while true_fair_price < price_search(company_symbol,market):
+        price_search(company_symbol, market)
+        await asyncio.sleep(0.00000001)
+        print(price_search(company_symbol, market))
 
     
 
-  
-    while true_fair_price < price_search(company_symbol):
-        price_search(company_symbol, market)
+    if true_fair_price > price_search(company_symbol,market):
+        webbrowser.open_new("https://finance.yahoo.com/quote/{}".format(company_symbol))
+        #send_email_notification(company_symbol, market, email)
 
-
-    webbrowser.open_new("https://finance.yahoo.com/quote/{}".format(company_symbol))
+        return 0
 
 
 def all_stat_lookup(symb, mark):
@@ -124,8 +159,14 @@ def all_stat_lookup(symb, mark):
 
     return query_dict
 
-def main():
-    look_at_price()
+async def main(lst, price):
+    loop_list = []
+    for a in range(len(lst)):
+        loop_list.append(asyncio.create_task(look_at_price(lst[a][1], lst[a][2], price[a])))
+        
+    
+    await asyncio.gather(*loop_list)
+    
 
-if __name__ == "__main__":
-    main()
+    
+
