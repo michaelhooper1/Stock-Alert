@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, session, flash
+from flask import Flask, redirect, url_for, render_template, request, session, flash, jsonify
 import os
 from sqlalchemy.orm import sessionmaker
 from datetime import timedelta
@@ -8,6 +8,11 @@ import sqlite3
 from stock_price_update import look_at_price, all_stat_lookup, price_search
 import stock_price_update
 import asyncio
+import flask_socketio
+import threading
+
+import eventlet
+
 
 
 app = Flask(__name__)
@@ -15,8 +20,12 @@ app.secret_key = os.urandom(24)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.sqlite3"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.permanent_session_lifetime = timedelta(days = 5)
+socketio = flask_socketio.SocketIO(app, async_mode = "eventlet")
 
 db = SQLAlchemy(app)
+
+
+
 
 class UserTrackingCompany(db.Model):
     __tablename__ = "UserTrackingCompany"
@@ -54,9 +63,6 @@ class Company(db.Model):
     def __init__(self, c_name, c_index):
         self.c_name = c_name
         self.c_index = c_index
-
-
-
 
 
 
@@ -209,9 +215,6 @@ def portfolio():
             actual_price = price_search(company[1], company[2])
             company_price_list.append(actual_price)
         
-        loop = asyncio.run(stock_price_update.main(company_list, company_price_list))
-        
-
         
         if len(company_list) == 0:
             flash("You are not tracking anything")
@@ -221,6 +224,13 @@ def portfolio():
         return redirect(url_for("login"))
 
     return render_template("portfolio.html", companies = company_list, prices_list = company_price_list, desired_price = desired_price_data)
+
+@app.route("/price_change", methods=["GET"])
+def search_price():
+
+    company_symbol = request.form["company_symbol"]
+    market = request.form["market"]
+    return jsonify(price_search(company_symbol,market))
 
 @app.route("/user", methods=["POST", "GET"])
 def user():
@@ -325,7 +335,7 @@ def confirmation():
         c = connection.cursor()
         c_id = c.execute("SELECT id FROM Company WHERE c_name = '{}' AND c_index = '{}'".format(sym, mar))
         c_id = c.fetchone()[0]
-        
+        c.close()
 
     if request.method == "POST":
 
@@ -367,5 +377,9 @@ def logout():
     return redirect(url_for("login"))
 
 if __name__ == "__main__":
+    
+
     db.create_all()
-    app.run(debug=True)
+    
+    app.run(debug = True)
+    

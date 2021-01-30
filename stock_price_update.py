@@ -9,6 +9,19 @@ import smtplib
 import os
 from datetime import datetime
 
+#Raw package
+import numpy as np
+import pandas as pd
+
+
+#Data Source
+import yfinance as yf
+
+#Data vizualisation
+import plotly.graph_objs as go
+
+
+
 os.environ["EMAIL_ADDRESS"] = "mhooperjnr1995@hotmail.co.uk"
 os.environ["EMAIL_PASSWORD"] = "Everton123456789"
 
@@ -41,8 +54,8 @@ def price_search(company_symbol, mark):
 
     price_query_2 = re.sub(r'(?!<)[^<]*(?=>)', '', price_query)
 
-    true_price_query = (re.sub("\<\>", "", price_query_2))
-    print(true_price_query)
+    true_price_query = (re.sub("\<\>|,", "", price_query_2))
+    
     return Decimal(true_price_query)
 
 def send_email_notification(symbol, market, user_email):
@@ -93,7 +106,7 @@ async def look_at_price(symb, mark, pri):
     while true_fair_price < price_search(company_symbol,market):
         price_search(company_symbol, market)
         await asyncio.sleep(0.00000001)
-        print(price_search(company_symbol, market))
+        
 
     
 
