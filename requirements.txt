@@ -9,5 +9,5 @@ passlib == 1.7.4
 aiohttp == 3.7.3
 flask-socketio == 4.6.1
 gevent == 20.9.0
-eventlet == 0.30.0
+eventlet == 0.31.0
 gevent-websocket == 0.10.1
